@@ -9,28 +9,7 @@
 // @grant        none
 // ==/UserScript==
 
-/**
- * main
- */
-(function () {
-  "use strict";
-  console.debug("qingshu-helper-init");
-  if (isCourseListPage()) {
-    console.debug("isCourseListPage");
-
-    setTimeout(() => {
-      getCourseList().then((res) => handleCourseListPage(res.data));
-    }, delay);
-  }
-
-  if (isCourseShowPage()) {
-    console.debug("isCourseShowPage");
-
-    setTimeout(() => {
-      handleCourseShowPage();
-    }, delay);
-  }
-})();
+// -------------------------------------------------------- //
 
 const CourseShowBaseURL = "/cqust/Student/Course/CourseShow";
 
@@ -39,6 +18,7 @@ const devMode = true;
  * 仅运行当前学期的 / 否则运行所有未完成的
  */
 const onlyRunCurrent = true;
+
 /**
  * 运行中的延时数值
  * 根据 网络/电脑性能 适当调大 至 3000
@@ -56,6 +36,40 @@ const LEARN_STATUS = {
   DONE: 1,
 };
 
+// -------------------------------------------------------- //
+
+/**
+ * main
+ */
+(function () {
+  "use strict";
+  main();
+})();
+
+/**
+ * 入口函数
+ */
+function main() {
+  console.debug("qingshu-helper-init");
+  if (isCourseListPage()) {
+    console.debug("isCourseListPage");
+
+    setTimeout(() => {
+      if (confirm("刷课助手脚本已经载入,确认执行?")) {
+        handleCourseListPage();
+      }
+    }, delay);
+  }
+
+  if (isCourseShowPage()) {
+    console.debug("isCourseShowPage");
+
+    setTimeout(() => {
+      handleCourseShowPage();
+    }, delay);
+  }
+}
+
 function getCourseList() {
   return new Promise((resolve, reject) => {
     console.debug("qingshu-helper-run");
@@ -68,21 +82,25 @@ function getCourseList() {
 
 /**
  * handleCourseListPage
- * @param {Course[]} courseList
  */
-function handleCourseListPage(courseList = []) {
-  console.debug("courseList", courseList);
-
-  if (onlyRunCurrent) {
-    const currentTermCourseList = courseList.filter((item) => item.isCurrent);
-    openCourses(currentTermCourseList);
-  } else {
-    const noDoneCourseList = courseList.filter(
-      (item) => item.learnStatus == LEARN_STATUS.DONE
-    );
-    openCourses(currentTermCourseList);
-    console.debug("noDoneCourseList", noDoneCourseList);
-  }
+function handleCourseListPage() {
+  getCourseList().then((res) => {
+    /**
+     * @type {Course[]} courseList
+     */
+    const courseList = res.data;
+    console.debug("courseList", courseList);
+    if (onlyRunCurrent) {
+      const currentTermCourseList = courseList.filter((item) => item.isCurrent);
+      openCourses(currentTermCourseList);
+    } else {
+      const noDoneCourseList = courseList.filter(
+        (item) => item.learnStatus == LEARN_STATUS.DONE
+      );
+      openCourses(currentTermCourseList);
+      console.debug("noDoneCourseList", noDoneCourseList);
+    }
+  });
 }
 
 /**
