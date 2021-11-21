@@ -21,9 +21,9 @@ const onlyRunCurrent = true;
 
 /**
  * 运行中的延时数值
- * 根据 网络/电脑性能 适当调大 至 3000
+ * 根据 网络/电脑性能 适当调大 至 3000 或者更高
  */
-const delay = 2000;
+const delay = 1500;
 
 /**
  * Enum for tri-state values.
@@ -165,7 +165,7 @@ function getCourseShowURL(course) {
   params.push(`periodId=${periodId}`);
   params.push(`courseId=${courseId}`);
   // params.push(`cw_nodeId=${cw_nodeId}`);
-  params.push(`category=${category}`);
+  // params.push(`category=${category}`);
   const courseShowURL = `${CourseShowBaseURL}?${params.join("&")}`;
   console.debug("courseShowURL: \n", courseShowURL);
   return courseShowURL;
@@ -175,6 +175,7 @@ function getCourseShowURL(course) {
 function getVideoProgress(video) {
   setInterval(() => {
     const currentTime = video.currentTime.toFixed(1);
+    console.debug("总长度:", video.duration);
     console.debug("当前进度:", currentTime);
   }, delay);
 }
