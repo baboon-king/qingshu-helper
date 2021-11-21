@@ -9,6 +9,29 @@
 // @grant        none
 // ==/UserScript==
 
+/**
+ * main
+ */
+(function () {
+  "use strict";
+  console.debug("qingshu-helper-init");
+  if (isCourseListPage()) {
+    console.debug("isCourseListPage");
+
+    setTimeout(() => {
+      getCourseList().then((res) => handleCourseListPage(res.data));
+    }, delay);
+  }
+
+  if (isCourseShowPage()) {
+    console.debug("isCourseShowPage");
+
+    setTimeout(() => {
+      handleCourseShowPage();
+    }, delay);
+  }
+})();
+
 const CourseShowBaseURL = "/cqust/Student/Course/CourseShow";
 
 const devMode = true;
@@ -17,10 +40,10 @@ const devMode = true;
  */
 const onlyRunCurrent = true;
 /**
- * 打开未完成的课程学习页面的延时
+ * 运行中的延时数值
  * 根据 网络/电脑性能 适当调大 至 3000
  */
-const openDelay = 2000;
+const delay = 2000;
 
 /**
  * Enum for tri-state values.
@@ -61,11 +84,33 @@ function handleCourseListPage(courseList = []) {
     console.debug("noDoneCourseList", noDoneCourseList);
   }
 }
+
+/**
+ * handleVideo
+ */
+function handleVideo(video) {
+  console.debug("handleVideo");
+  // 设置静音并播放
+  video.muted = true;
+  // 设置倍速播放 支持以下速率: [2, 1.5, 1.2, 0.5] ；默认开启 如有问题请手动注释下面这行代码；或者邮箱反馈我
+  video.playbackRate = 1;
+  video.play();
+
+  video.addEventListener("ended", function () {
+    video.play();
+  });
+
+  getVideoProgress(video);
+}
 /**
  * handleCourseShowPage
  */
 function handleCourseShowPage() {
-  console.log("handleCourseShowPage");
+  console.debug("handleCourseShowPage");
+  const video = document.querySelector("video");
+  if (video) {
+    handleVideo(video);
+  }
 }
 
 /**
@@ -77,7 +122,7 @@ function openCourses(CourseList) {
     const url = getCourseShowURL(item);
     setTimeout(() => {
       open(url);
-    }, index * openDelay);
+    }, index * delay);
   });
 }
 
@@ -108,28 +153,13 @@ function getCourseShowURL(course) {
   return courseShowURL;
 }
 
-/**
- * main
- */
-(function () {
-  "use strict";
-  console.debug("qingshu-helper-init");
-  if (isCourseListPage()) {
-    console.debug("isCourseListPage");
-
-    setTimeout(() => {
-      getCourseList().then((res) => handleCourseListPage(res.data));
-    }, openDelay);
-  }
-
-  if (isCourseShowPage()) {
-    console.debug("isCourseShowPage");
-
-    setTimeout(() => {
-      handleCourseShowPage();
-    }, openDelay);
-  }
-})();
+// 检测当前播放的进度
+function getVideoProgress(video) {
+  setInterval(() => {
+    const currentTime = video.currentTime.toFixed(1);
+    console.debug("当前进度:", currentTime);
+  }, delay);
+}
 
 /**
  * Course
