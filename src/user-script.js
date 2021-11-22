@@ -11,22 +11,15 @@
 
 // -------------------------------------------------------- //
 
-const CourseShowBaseURL = "/cqust/Student/Course/CourseShow";
+const serverBaseUrl = "https://degree.qingshuxuetang.com/cqust/Student/Course/";
 
-const devMode = true;
 /**
- * 仅运行当前学期的 / 否则运行所有未完成的
+ * 需要运行的课程 id
  */
-const onlyRunCurrent = true;
+const needRunCourseId = "";
 
 /**
- * 运行中的延时数值
- * 根据 网络/电脑性能 适当调大 至 3000 或者更高
- */
-const delay = 1500;
-
-/**
- * Enum for tri-state values.
+ * 课程学习状态
  * @readonly
  * @enum {number}
  */
@@ -36,6 +29,19 @@ const LEARN_STATUS = {
   DONE: 1,
 };
 
+/**
+ * 学习的内容 type
+ * @readonly
+ * @enum {number}
+ */
+const CONTENT_TYPE = {
+  DEGREE_COURSEWARE: 11,
+  DEGREE_EBOOK: 12,
+  DEGREE_PREPARATION: 13,
+  DEGREE_PLAYBACK: 14,
+  DEGREE_LIVE: 15,
+};
+
 // -------------------------------------------------------- //
 
 /**
@@ -43,7 +49,9 @@ const LEARN_STATUS = {
  */
 (function () {
   "use strict";
-  main();
+  setTimeout(() => {
+    main();
+  }, 1000);
 })();
 
 /**
@@ -51,133 +59,76 @@ const LEARN_STATUS = {
  */
 function main() {
   console.debug("qingshu-helper-init");
-  if (isCourseListPage()) {
-    console.debug("isCourseListPage");
 
-    setTimeout(() => {
-      if (confirm("刷课助手脚本已经载入,确认执行?")) {
-        handleCourseListPage();
-      }
-    }, delay);
+  if (isHomePage()) {
+    console.debug("isHomePage");
+    alert("登录成功! 选择想学习的课程开始学习");
   }
 
-  if (isCourseShowPage()) {
-    console.debug("isCourseShowPage");
-
-    setTimeout(() => {
-      handleCourseShowPage();
-    }, delay);
-  }
-}
-
-function getCourseList() {
-  return new Promise((resolve, reject) => {
-    console.debug("qingshu-helper-run");
-    window.$.post("CourseData", null, function (res) {
-      resolve(res);
-      console.debug("CourseData-result", res);
-    });
-  });
-}
-
-/**
- * handleCourseListPage
- */
-function handleCourseListPage() {
-  getCourseList().then((res) => {
-    /**
-     * @type {Course[]} courseList
-     */
-    const courseList = res.data;
-    console.debug("courseList", courseList);
-    if (onlyRunCurrent) {
-      const currentTermCourseList = courseList.filter((item) => item.isCurrent);
-      openCourses(currentTermCourseList);
-    } else {
-      const noDoneCourseList = courseList.filter(
-        (item) => item.learnStatus == LEARN_STATUS.DONE
-      );
-      openCourses(currentTermCourseList);
-      console.debug("noDoneCourseList", noDoneCourseList);
+  if (isCourseStudyPage()) {
+    console.debug("isCourseStudyPage");
+    if (confirm("课程助手脚本已经载入,确认执行?")) {
+      handleCourseStudyPage();
     }
-  });
-}
-
-/**
- * handleVideo
- */
-function handleVideo(video) {
-  console.debug("handleVideo");
-  // 设置静音并播放
-  video.muted = true;
-  // 设置倍速播放 支持以下速率: [2, 1.5, 1.2, 0.5] ；默认开启 如有问题请手动注释下面这行代码；或者邮箱反馈我
-  video.playbackRate = 1;
-  video.play();
-
-  video.addEventListener("ended", function () {
-    video.play();
-  });
-
-  getVideoProgress(video);
-}
-/**
- * handleCourseShowPage
- */
-function handleCourseShowPage() {
-  console.debug("handleCourseShowPage");
-  const video = document.querySelector("video");
-  if (video) {
-    handleVideo(video);
   }
+}
+
+/**
+ * handleCourseStudyPage
+ */
+function handleCourseStudyPage() {
+  const searchParams = new URLSearchParams(location.search);
+  const courseId = searchParams.get("courseId");
+  const teachPlanId = searchParams.get("teachPlanId");
+  const periodId = searchParams.get("periodId");
+
+  const contentType = prompt(
+    "课程内容类型:\n\n讲函:11\n电子书:12\n预习PREPARATION:13\n回放PLAYBACK:14\n直播LIVE:15 \n\n默认为讲函:11\n",
+    CONTENT_TYPE.DEGREE_COURSEWARE
+  );
+
+  if (!contentType) {
+    return;
+  }
+
+  handleCourse({ courseId, teachPlanId, periodId, contentType });
 }
 
 /**
  *
- * @param {Course[]} CourseList
+ * @param {Course} course
  */
-function openCourses(CourseList) {
-  CourseList.forEach((item, index) => {
-    const url = getCourseShowURL(item);
-    setTimeout(() => {
-      open(url);
-    }, index * delay);
-  });
+function handleCourse(course) {
+  const { teachPlanId, courseId, periodId, contentType } = course;
+  StudyRecordService.setContext(serverBaseUrl);
+
+  StudyRecordService.uploadStudyRecordBegin(
+    teachPlanId,
+    courseId,
+    "",
+    contentType,
+    periodId
+  );
 }
 
 function isCourseListPage() {
   const courseList_page = "/cqust/Student/Course/CourseList";
   return location.href.includes(courseList_page);
 }
+
 function isCourseShowPage() {
   const courseShow_page = "/cqust/Student/Course/CourseShow";
   return location.href.includes(courseShow_page);
 }
 
-/**
- * 创建一个 courseShow 页面的 URL
- * @param {Course} course
- */
-function getCourseShowURL(course) {
-  const { teachPlanId, category = "kcjs", courseId, periodId } = course;
-  const cw_nodeId = `kcjs_4_2_1`;
-  const params = [];
-  params.push(`teachPlanId=${teachPlanId}`);
-  params.push(`periodId=${periodId}`);
-  params.push(`courseId=${courseId}`);
-  // params.push(`cw_nodeId=${cw_nodeId}`);
-  // params.push(`category=${category}`);
-  const courseShowURL = `${CourseShowBaseURL}?${params.join("&")}`;
-  console.debug("courseShowURL: \n", courseShowURL);
-  return courseShowURL;
+function isCourseStudyPage() {
+  const courseStudy_page = "/cqust/Student/Course/CourseStudy";
+  return location.href.includes(courseStudy_page);
 }
 
-// 检测当前播放的进度
-function getVideoProgress(video) {
-  setInterval(() => {
-    const currentTime = video.currentTime.toFixed(1);
-    console.debug("总长度:", video.duration);
-    console.debug("当前进度:", currentTime);
-  }, delay);
+function isHomePage() {
+  const home_page = "/cqust/Student/Home";
+  return location.href.includes(home_page);
 }
 
 /**
@@ -185,6 +136,7 @@ function getVideoProgress(video) {
  * @typedef {Object} Course
  * @property {number} courseId - 课程 ID
  * @property {LEARN_STATUS} learnStatus - 学习状态
+ * @property {CONTENT_TYPE} contentType - 学习内容type
  * @property {number} teachPlanId - 计划ID
  * @property {number} periodId - 时期ID
  * @property {number} cw_nodeId - 章节id
