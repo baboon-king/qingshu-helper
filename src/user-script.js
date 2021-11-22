@@ -65,12 +65,41 @@ function main() {
     alert("登录成功! 选择想学习的课程开始学习");
   }
 
+  if (isCourseListPage() && confirm("是否要获取所有课程的登录分")) {
+    getCourseList().then((res) => {
+      res.data.forEach((item) => {
+        getLoginFraction(item);
+      });
+    });
+  }
+
   if (isCourseStudyPage()) {
     console.debug("isCourseStudyPage");
     if (confirm("课程助手脚本已经载入,确认执行?")) {
       handleCourseStudyPage();
     }
   }
+}
+
+/**
+ * 20 次的登陆分
+ */
+function getLoginFraction(course) {
+  const { teachPlanId, courseId, periodId, contentType } = course;
+  for (let index = 0; index < 20; index++) {
+    fetch(
+      `${serverBaseUrl}CourseStudy?courseId=${courseId}&teachPlanId=${teachPlanId}&periodId=${periodId}`
+    );
+  }
+}
+
+function getCourseList() {
+  return new Promise((resolve, reject) => {
+    window.$.post("CourseData", null, function (res) {
+      resolve(res);
+      console.debug("CourseData-result", res);
+    });
+  });
 }
 
 /**
@@ -92,6 +121,9 @@ function handleCourseStudyPage() {
   }
 
   handleCourse({ courseId, teachPlanId, periodId, contentType });
+  setInterval(() => {
+    handleCourse({ courseId, teachPlanId, periodId, contentType });
+  }, 1000 * 60 * 60);
 }
 
 /**
