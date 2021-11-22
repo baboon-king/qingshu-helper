@@ -109,6 +109,39 @@ function handleCourse(course) {
     contentType,
     periodId
   );
+  showLog();
+}
+
+function showLog() {
+  const runningText = "<div>运行中......</div>";
+  const addedValueText = "<div>时长增加了 2 分钟 </div>";
+  const clearText = "<div>已清屏</div>";
+  const supportEl = document.querySelector(".support-pc");
+
+  supportEl.style.background = "black";
+  supportEl.style.top = "60px";
+  supportEl.style.height = "100vh";
+  supportEl.style.width = "10vw";
+  supportEl.style.overflow = "auto";
+  supportEl.style.color = "wheat";
+  supportEl.style.textAlign = "end";
+  supportEl.onclick = null;
+
+  supportEl.innerHTML += runningText;
+  setInterval(() => {
+    supportEl.innerHTML += runningText;
+    supportEl.scrollTop = 9999;
+  }, 10 * 1000);
+
+  setInterval(() => {
+    supportEl.innerHTML += addedValueText;
+    supportEl.scrollTop = 9999;
+  }, 2 * 60 * 1000);
+
+  setInterval(() => {
+    supportEl.innerHTML = clearText;
+    supportEl.scrollTop = 9999;
+  }, 60 * 60 * 1000);
 }
 
 function isCourseListPage() {
