@@ -12,6 +12,7 @@ window.StudyRecordService = (function () {
     recordInfo: null,
     uploadTimer: null,
     timeOutConfirm: false,
+    end: false,
   };
 
   var CONTENT_TYPE = {
@@ -67,6 +68,7 @@ window.StudyRecordService = (function () {
     }
     var fd = new FormData();
     fd.append("recordId", context.recordId);
+    fd.append("end", context.end);
     fd.append("position", Math.floor(context.playPosition) + "");
     fd.append("timeOutConfirm", context.timeOutConfirm);
     useBeacon && navigator.sendBeacon
@@ -84,6 +86,9 @@ window.StudyRecordService = (function () {
   }
 
   function uploadStudyRecord(uploadType, recordInfo) {
+    if (checkStudentIsMock(true)) {
+      return;
+    }
     var url =
       uploadType === UPLOAD_TYPE.BEGIN
         ? UPLOAD_STUDY_RECORD_BEGIN_URL
@@ -121,12 +126,14 @@ window.StudyRecordService = (function () {
   }
 
   function cleanBeforeLeave(useBeacon) {
+    context.end = true;
     uploadStudyRecordContinue(useBeacon);
     nextIntervalTime = UPLOAD_TIMER_INTERVAL_TIME;
     lastUploadTime = null;
     clearTimeout(context.uploadTimer);
     context.recordId = null;
     context.recordInfo = null;
+    context.end = false;
   }
 
   function getLastPlayerTime(teachplanCourseId, nodeId, callback) {
@@ -149,6 +156,9 @@ window.StudyRecordService = (function () {
   }
 
   function setTimeOutConfirm() {
+    if (checkStudentIsMock(true)) {
+      return;
+    }
     context.timeOutConfirm = true;
     lastUploadTime = null;
     nextIntervalTime = UPLOAD_TIMER_INTERVAL_TIME;
