@@ -215,7 +215,7 @@ function handleCourse(course) {
   const { teachPlanId, courseId, periodId, contentType } = course;
   StudyRecordService.setContext(serverBaseUrl);
 
-  StudyRecordService.uploadStudyRecordBegin(
+  StudyRecordService.resume(
     teachPlanId,
     courseId,
     "",
