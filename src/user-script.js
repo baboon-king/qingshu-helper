@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         qingshu-helper
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/baboon-king/qingshu-helper
 // @version      0.1
 // @description  qingshu-helper
 // @author       BaboonKing
