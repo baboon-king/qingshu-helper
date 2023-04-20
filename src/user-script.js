@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         qingshu-helper
 // @namespace    https://github.com/baboon-king/qingshu-helper
-// @version      0.1
+// @version      0.2
 // @description  qingshu-helper
 // @author       BaboonKing
 // @match        *://*.qingshuxuetang.com/*
